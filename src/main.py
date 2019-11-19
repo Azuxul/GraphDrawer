@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tck
 import npyscreen
 import codecs
 
@@ -75,6 +76,8 @@ class Selector(npyscreen.ActionForm):
         else:
             plt.style.use('bmh')
 
+        fig, ax = plt.subplots()
+
         plt.title(self.title.value)
 
         id = 0
@@ -86,6 +89,9 @@ class Selector(npyscreen.ActionForm):
 
         x_index = int(self.selector_x.value[0])
         y_index = [int(x) for x in self.selector_y.value]
+
+        max_y_val = []
+        min_y_val = []
 
         try:
             v_min = int((500.0 * int(self.t_min.value)) / 10.0)
@@ -110,7 +116,20 @@ class Selector(npyscreen.ActionForm):
                 y_plot = [val[y - 1] for val in self.parentApp.data[1][id]]
                 y_plot = y_plot[v_min:v_max]
 
+            max_y_val.append(max(y_plot))
+            min_y_val.append(min(y_plot))
+
             plt.plot(x_plot, y_plot, label=self.parentApp.data[0][y])
+
+        x_max = max(x_plot)
+        x_min = min(x_plot)
+        y_max = max(max_y_val)
+        y_min = min(min_y_val)
+
+        plt.xticks(np.linspace(x_min, x_max, 10))
+        plt.yticks(np.linspace(y_min, y_max, 10))
+        ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
+        ax.xaxis.set_minor_locator(tck.AutoMinorLocator())
 
         if len(y_index) == 1:
             label = self.parentApp.data[0][y_index[0]]
@@ -124,6 +143,9 @@ class Selector(npyscreen.ActionForm):
         if not self.x_unit == "":
             label += " (" + self.x_unit.value + ")"
         plt.xlabel(label)
+
+        plt.xlim(left=x_min)
+        plt.xlim(left=x_max)
 
         try:
             plt.xlim(left=int(self.x_min.value))
@@ -190,7 +212,7 @@ def read_file(name):
                     legend[index] = legend[index][:i]
                     break
 
-        legend.insert(0, "Time")
+        legend.insert(0, "Temps")
         buf = []
         for l in f:
             if l == legend_line:
